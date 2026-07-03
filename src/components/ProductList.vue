@@ -65,7 +65,7 @@ const agregarProducto = () => {
 
   // Crear el producto
   const nuevoProducto: Producto = {
-    id: Date.now(),
+    id: productos.length + 1,
     nombre: nombre.value,
     precio: precio.value,
     stock: stock.value,
