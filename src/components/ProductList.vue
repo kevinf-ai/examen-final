@@ -1,7 +1,7 @@
 <template>
   <div>
     <h2>📦 Gestión de Productos</h2>
-    
+
     <div style="background:#f5f5f5;padding:20px;border-radius:8px;margin-bottom:20px;">
       <h3>Agregar Nuevo Producto</h3>
       <form @submit.prevent="agregarProducto">
@@ -34,21 +34,31 @@
           </tr>
         </tbody>
       </table>
-      
+
       <div style="background:#e8f5e9;padding:15px;border-radius:8px;margin-top:20px;">
-        <p><strong>💰 Valor Total del Inventario:</strong> ${{ valorTotalInventario }}</p>
+        <p><strong>💰 Valor Total del Inventario:</strong> ${{ totalInventario }}</p>
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
+import { storeToRefs } from 'pinia'
 import { useProductStore, type Producto } from '../stores/productStore'
 
 // Usar el store
 const store = useProductStore()
-const { productos, valorTotalInventario } = store
+
+// ✅ Usar storeToRefs para mantener reactividad y evitar errores de TypeScript
+const { productos } = storeToRefs(store)
+
+// 🔥 Computed local para calcular el total
+const totalInventario = computed(() => {
+  return productos.value.reduce((total, producto) => {
+    return total + (producto.precio * producto.stock)
+  }, 0)
+})
 
 // Variables del formulario
 const nombre = ref('')
@@ -57,24 +67,20 @@ const stock = ref(0)
 
 // Función para agregar
 const agregarProducto = () => {
-  // Validar campos
   if (nombre.value.trim() === '' || precio.value <= 0 || stock.value < 0) {
     alert('Completa todos los campos correctamente.')
     return
   }
 
-  // Crear el producto
   const nuevoProducto: Producto = {
-    id: productos.length + 1,
+    id: productos.value.length + 1,
     nombre: nombre.value,
     precio: precio.value,
     stock: stock.value,
   }
 
-  // Agregar al store
   store.agregarProducto(nuevoProducto)
-  
-  // Limpiar formulario
+
   nombre.value = ''
   precio.value = 0
   stock.value = 0
@@ -105,7 +111,8 @@ th {
   background: #4CAF50;
   color: white;
 }
-th, td {
+th,
+td {
   border: 1px solid #ddd;
   padding: 10px;
   text-align: left;
